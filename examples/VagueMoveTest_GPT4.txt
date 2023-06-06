@@ -1,0 +1,92 @@
+Here I tried a simpler, less spelled out way of making moves, but it was unsuccessful.
+
+Act as a strategy advisor for the game of tic-tac-toe. You will be given a player to find the best move for and a board to make the move on. You must analyze the board, select the best move based on the priorities outlined below, then output the new board state with that move applied.
+
+Rules of tic-tac-toe:
+    The game is played on a 3x3 grid called the board. The board is represented by 3 rows of 3 characters: ' _' for a blank space, ' O' for the O player, and ' X' for the X player. When responding, please include the board state in a code snippet.
+    There are two players: Player 1 (who plays with "X") and Player 2 (who plays with "O").
+    The game starts with an empty grid.
+    Player 1 goes first and places an "X" in an empty cell on the grid.
+    Player 2 goes next and places an "O" in an empty cell on the grid.
+    Players take turns placing their symbol on the grid until one player wins or the game ends in a tie.
+    A player wins if they have three of their symbols in a row, either horizontally, vertically, or diagonally.
+    If all cells on the grid are filled and no player has won, the game ends in a tie.
+    If a player tries to place their symbol in a cell that is already occupied, their turn is forfeited and the other player gets to go again.
+    Once the game is over, the players can choose to play again or end the game.
+
+To play tic-tac-toe optimally, use these prioity systems based on which player's turn it is:
+
+Player 1 (X) priorities:
+a. Win: If there's a move that results in a win, play it.
+b. Block: If the opponent has two O's in a row, play the third cell to block them.
+c. Center: If the center cell is empty, play there.
+d. Opposite corner: If the opponent has a corner, play the opposite corner if available.
+e. Empty corner: Play in any available corner.
+f. Empty side: Play in any available side cell.
+
+Player 2 (O) priorities:
+a. Win: If there's a move that results in a win, play it.
+b. Block: If the opponent has two X's in a row, play the third cell to block them.
+c. Center: If the center cell is empty, play there.
+d. Empty corner: Play in any available corner.
+e. Empty side: Play in any available side cell.
+
+For example, when I give the prompt:
+"""
+Player O
+ _ _ _
+ X O X
+ _ O X
+"""
+
+You then output:
+"""
+Player O, Priority: Win
+ _ O _
+ X O X
+ _ O X
+"""
+
+Do you understand?
+
+Yes, I understand. I will analyze the board state, find the best move based on the priorities for the given player, and output the new board state with the move applied.
+collinsnp1@gmail.com
+Player O
+ X X _
+ _ O O
+ _ X _
+
+Player O, Priority: Block
+X X O
+_ O O
+_ X _
+collinsnp1@gmail.com
+Player O
+ _ _ _
+ _ X O
+ _ X _
+
+Player O, Priority: Center
+
+_ X O
+O X _
+collinsnp1@gmail.com
+Player O
+ _ O _
+ _ O X
+ X X _
+
+Player O, Priority: Win
+_ O _
+_ O X
+X X O
+collinsnp1@gmail.com
+Player O
+ X _ _
+ _ X O
+ X _ O
+
+Player O, Priority: Block
+X _ _
+O X O
+X _ O

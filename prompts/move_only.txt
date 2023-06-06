@@ -1,0 +1,63 @@
+Act as a strategy advisor for the game of tic-tac-toe. You will be given a player to find the best move for and a board to make the move on. You must analyze the board as described below and ultimately output the new board with the best move applied to it.
+
+The tic-tac-toe board is represented by a 3 by 3 grid of characters. Each cell is represented by either ' X' for Player 1's moves, ' O' for Player 2's moves, and ' _' for a blank cell.
+
+In order to find the best move, the first thing you need to do is output the classifications of each dimension (meaning row, column, and diagonal). This is a 3 step process:
+1. Output the contents of each dimension
+Each cell within the tic-tac-toe board is numbered from 1 to 9 going left to right and top to bottom. Each dimension always contains the letter from the same set of 3 cells shown below. For example, when showing the contents of Diagonal 2, always copy the letters from cell numbers 3, 5, and 7. When outputting the contents of each dimension, use the reference below as a guide. For each dimension, substitute the cell number with the actual content of the cell in the given board.
+
+Cell Numbers Board Reference:
+ 1 2 3
+ 4 5 6
+ 7 8 9
+
+Dimension to Cell Number Reference:
+Row 1: " 1 2 3"
+Row 2: " 4 5 6"
+Row 3: " 7 8 9"
+Column 1: " 1 4 7"
+Column 2: " 2 5 8"
+Column 3: " 3 6 9"
+Diagonal 1: " 1 5 9"
+Diagonal 2: " 3 5 7"
+
+	The row numbers go from top to bottom. Within each row, the order should be from left to right. The columns numbers go from left to right. Within the column, the letter order goes from top to bottom. Diagonal 1 goes from the top left to the bottom right. This means that it has the top left, middle, and bottom right cells (cells number 1, 5, and 9). Diagonal 2 goes from the top right to bottom left. This means that it has the bottom left, middle, and top right cells, which are cells number 3, 5, and 7. It is important not to mix up the order of the letters within the dimension. In order to show the contents of the dimensions follow this transformation scheme outlined below.
+
+2. Count each letter type within the dimension:
+	Please count the number of letters in the dimension sequence. Each dimension will have 3 letters outputted from step 1, and I need you to count how many times each character occurs in that sequence. There are only 3 characters that are possible in the sequence: ' X', ' O', and ' _'. For example: given the sequence " X X _", the counts should be " X: 2 O: 0 _:1"
+3. Classify dimensions based on their counts:
+	The four possible classifications are 'possible O', 'possible X', 'open', and 'closed'. The 'possible O' category means that there are two O's and an empty cell and no X's. This means that if the counts are "X:0 O:2 _:1", it will always be in the category 'possible O'. The 'possible X' for when there are two X's and an empty cell and no O's. This means that if the counts are " X:2 O:0 _:1", it will always be in the category 'possible O'. The 'open' category means that there are one or less X or O within the dimension. This means that if the counts are of the blank cells are greater than or equal to 2, it will always be in the category 'open'. The 'closed' category means that there is atleast one X and atleast one O. This means that if the counts of both X and O are greater than or equal to 1, it will always be the 'closed' category.
+
+Now it is time to select the best move based on this dimension analysis. The output should follow this format but replace all of the square brackets with the actual answers based on the analysis. "Best Move for Player [X or O]: Category: [best category], Dimension: [best dimension], Cell: #[1, 2, or 3], Coordinate: ([row], [column])". Each part to fill in is important for figuring out how to fill in the next part. First, just reiterate which player we are trying to make a move for. This is used to select the best dimension category. The best dimension is determined by following this simple priority system. First, check if there is a 'possible' win in for the player from the prompt. This means if the player being asked about is 'X', 'possible X' is the priority over 'possible O' for the number one priority. Conversely, if the prompt is for Player O, then 'possible O' is the priority over 'possible X' for the number one priority. If there is, make a move in the blank cell in this dimension to win the game. Next, check if there is a 'possible' win for the other player. If there is, then make a move in this column in order to block the other player from winning (but only if you cannot win yourself). If there are none of these categories, then move in the first available 'open' dimension. Finally, if no other options are available, make a move in the first empty cell within a 'closed' dimension. Once the best category is selected, identify the number of the cell that is blank in that dimension. Finally, we need to translate the empty cell number in the selected dimension back to where it belongs on the board. Output the coordinate in terms of (row, column) that corresponds to the blank cell in the selected dimension. For example, if the selected dimension is column 2 and the contents are ' _ X X', the cell number would be 1 since it is the first cell that is blank. The coordinates of the move translate to (1, 3) since it is the first row and the third column. More generally, if the selected dimension is a row, then the corrdinates are simply the row number then the cell number. If the selected dimension is a column, then the first number in the corrdinate would be the cell number and the second number would be the column number.
+
+Finally, use the coordinate chosen to place the move on the board and output the board with the best move place on it.
+
+For example, when I give the prompt:
+"""
+Player O
+ _ _ _
+ X O X
+ _ O X
+"""
+
+You should output exactly:
+"""
+Dimensions:
+Row 1: " _ _ _" Counts "X:0 O:0 _:3" Classification: 'open'
+Row 2: " X O X" Counts "X:2 O:1 _:0" Classification: 'closed'
+Row 3: " _ O X" Counts "X:1 O:1 _:1" Classification: 'closed'
+Column 1: " _ X _" Counts "X:1 O:0 _:2" Classification: 'open'
+Column 2: " _ O O" Counts "X:0 O:2 _:1" Classification: 'possible O'
+Column 3: " _ X X" Counts "X:2 O:0 _:1" Classification: 'possible X'
+Diagonal 1: " _ O X" Counts "X:1 O:1 _:1" Classification: 'closed'
+Diagonal 2: " _ O _" Counts "X:0 O:1 _:2" Classification: 'open'
+
+Best Move for Player O: Category: 'possible O', Dimension: Column 2, Cell: #1, Coordinate: (1, 2)
+
+Resulting Board:
+ _ O _
+ X O X
+ _ O X
+"""
+
+So I will only tell you which player needs to make a move and give the current board and I only need to know what the best move is and why. Do you understand?

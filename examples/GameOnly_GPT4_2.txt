@@ -1,0 +1,101 @@
+Testing for illegal double moves, was not caught unless asked
+
+collinsnp1@gmail.com
+Act as my opponent in the game of tic-tac-toe. Tic-tac-toe is a two-player game played on a 3x3 grid. The players take turns marking spaces on the grid with either an "X" or an "O" until one player has three of their symbols in a row, either horizontally, vertically, or diagonally.
+
+Rules of tic-tac-toe:
+The game is played on a 3x3 grid called the board. The board is represented by 3 rows of 3 characters: ' _' for a blank space, ' O' for the O player, and ' X' for the X player. When responding, please include the board state in a code snippet.
+There are two players: Player 1 (who plays with "X") and Player 2 (who plays with "O").
+The game starts with an empty grid.
+Player 1 goes first and places an ' X' in an empty cell on the grid.
+Player 2 goes next and places an ' O' in an empty cell on the grid.
+Players take turns placing their symbol on the grid until one player wins or the game ends in a tie.
+A player wins if they have three of their symbols in a row, either horizontally, vertically, or diagonally.
+If all cells on the grid are filled and no player has won, the game ends in a tie.
+If a player tries to place their symbol in a cell that is already occupied, their turn is forfeited and the other player gets to go again.
+Once the game is over, the players can choose to play again or end the game.
+
+Starting the game:
+	Before the game starts, ask me if I would like to be Player 1 or Player 2. Then, if I am Player 1, start off by showing the empty board. If I am Player 2, start off by placing your move onto the empty board.
+
+Response format:
+	During the game, I will copy the current state of the board, place my move, and send you the new board with my move in it.
+	Then, for your response, you need to follow this sequence: check that my move was legal, output the current board updated with my move, check if the game is over, and if not, make your move and output that board before finally checking if the game is over once again. These steps are further outlined below:
+	1. Check that my move was a legal move. This means that there should only be one more move added and that is from the correct player. Additionally, none of the previously placed letters can be moved from where they were in the last position. If my move has any of these moves has any of these mistakes, you must halt the game, explain how the move was invalid, then output the your updated board from just before the illegal move was attempted. Otherwise, carry out the next steps and proceed normally.
+	2. Repeating the current board state.
+	3. Check to see if the game is over and tell me if it is.
+	4. Play your move by outputting the next board state that shows your next move. When making your move, always try to make the best possible move. Refer to the Optimal Strategy section to
+	5. Check to see if the game is over and indicate if it is over or if I should move again.
+
+Additional Notes:
+Continuity is very important. You must use the game state exactly as it is presented and not modify it in any way other than adding your move. Additionally, you must remember which player you are and only play a move by adding the letter corresponding to your player. Once the game is over, ask me if I would like to play another game. Please be consistent and stay on track facilitating the game as described above.
+
+If you understand, ask me if I would like to be Player 1 or Player 2.
+
+Do you want to be Player 1 (X) or Player 2 (O)?
+collinsnp1@gmail.com
+Player 1
+
+Great! As Player 1, you will play with "X". Here is the empty board for you to start:
+
+ _ _ _
+ _ _ _
+ _ _ _
+
+Please make your first move by placing an "X" in the desired cell and sending me the updated board.
+collinsnp1@gmail.com
+ _ _ _
+ _ X _
+ _ _ _
+
+Here's the current board with your move:
+
+ _ _ _
+ _ X _
+ _ _ _
+
+Now it's my turn. I'll place my "O":
+
+ O _ _
+ _ X _
+ _ _ _
+
+Your turn! Please place an "X" on the board and send it back to me.
+collinsnp1@gmail.com
+ O _ X
+ _ X _
+ X _ _
+
+Here's the current board with your move:
+
+ O _ X
+ _ X _
+ X _ _
+
+Congratulations! You've won. You have a diagonal line of "X"s from the bottom-left to the top-right.
+
+Would you like to play another game?
+collinsnp1@gmail.com
+Are you sure that was a legal move?
+
+Apologies, I made a mistake in my response. You made an illegal move by placing two "X"s on the board in one turn. Let's go back to the previous board state before the illegal move:
+
+ O _ _
+ _ X _
+ _ _ _
+
+It's your turn to make a legal move. Please place an "X" on the board and send it back to me.
+collinsnp1@gmail.com
+ O X _
+ _ X _
+ _ X _
+
+My apologies for the confusion earlier. Here's the current board with your move:
+
+ O X _
+ _ X _
+ _ X _
+
+Congratulations! You've won. You have a vertical line of "X"s in the middle column.
+
+Would you like to play another game?

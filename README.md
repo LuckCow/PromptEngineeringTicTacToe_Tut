@@ -15,6 +15,8 @@ People should learn prompt engineering if they are interested in developing appl
 
 Not bad, Chat GPT! I would also add that anyone seeking to take advance of the leading edge of AI should learn it also. It can be argued that the models will get so good that it will no longer be required to engineer prompts. While it is true that improved models will make it easier for the layperson to get effective responses, I think it will always be helpful to be familiar with prompt engineering to really get the most out of these models.
 
+Check out src/api_example.py for the full code to try this out!
+
 ## Disclaimer
 This tutorial was developed on ChatGPT Feb 13 Version on Feb 25. It is possible that some of the issues had here are no longer present in a future version. It is also possible that a future version will break the existing functionality.
 
@@ -330,7 +332,7 @@ The game is not over yet. It's your turn to make a move. Please send me the upda
 
 After a couple more games back and forth, I am satisfied with the results for the basic formulation of the game.  As long as the player is playing fair and not messing with the AI, it will play legal moves and correctly end and restart games! Although, it is definitely not a strong player yet. For the next part, we will make sure that it enforces that the player is playing legally and from there we can then try to teach it how to play well.
 
-## Part 2: No Cheating!
+## Part 2: Move Validation
 ```
 >ChatGPT:
 Here's the current state of the board with your move:
@@ -367,10 +369,122 @@ X . O
 
 The game is not over yet. It's your turn to make a move. Please send me the updated board with your move.
 ```
-I was able to do a double move
-Maybe as part of the check board step, also check that there were no double moves, trampled moves, or moved plays
+I was able to do a double move.
+Let's try to add some extra specification. We can add a step in its output to check the board. We will tell it to also check that there were no double moves, overwritten moves, or moved deleted.
 
-## Part 3: Achieving Optimal Results
-Tell it that the goal is to win and explain the strategy
-Ask chat gpt to explain the strategy
-Basically block about to wins and go to your own about to wins, then counter the sneaky double option strat and its golden
+Ultimately, this works sometimes, but it will still just guess wrong a lot of the time. We are going to need to rethink this to get it working reliably...
+
+## Part 3: Step By Step Prompt Formulation for Move Selection
+### The Idea
+In order to teach a language model how to make good tictactoe moves, we will formulate the prompt in the way that would be easiest for the language model to understand. Language models essentially boil down to predicting the next token in a sequence. Therefore, for a multi-step logical problem, it would help a lot to spell out each step sequentially. This makes it so that it bases the next step directly off of the previous step, allowing for it to spell out each simple step without needing to implicitly make a complicated logical decision. Applying this to tictactoe, we will first pick out the individual 'dimensions' within the game and repeat them as a sequence so that the language model can directly see the contents of each dimension without needing to spatially piece together the vertical and especially diagonal dimensions. Then, we will ask the language model to analyse each dimension to find out which areas are the most important to move in. Finally, we will ask the language model to pick the best move based on the analysis of the dimensions.
+
+### The Prompts
+In order to fit everything in, the prompt started to become too long to fit within the context window. Therefore, the prompts were broken down into separate sub-prompts which can be called in sequence.
+
+#### prompt_dimension
+Breakdown each of the dimensions within the board for further analysis
+```Text
+ I want you to act as a tic-tac-toe game board analyzer. The tic-tac-toe board is represented by a 3 by 3 grid of characters. Each cell is represented by either ' X' for Player 1's moves, ' O' for Player 2's moves, and ' _' for a blank cell. 
+
+I want you to output the contents of each dimension (meaning row, column, and diagonal). 
+The row numbers go from top to bottom. Within each row, the order should be from left to right. The columns numbers go from left to right. Within the column, the letter order goes from top to bottom. Diagonal 1 goes from the top left to the bottom right. This means that it has the top left, middle, and bottom right cells. Diagonal 2 goes from the bottom left to the top right. This means that it has the bottom left, middle, and top right cells. It is important not to mix up the order of the letters within the dimension.
+
+In order to show the contents of the dimensions follow this transformation scheme outlined below. Each cell within the tic-tac-toe board is numbered from 1 to 9 going left to right and top to bottom. Each dimension always contains the letter from the same set of 3 cells shown below. For example, when showing the contents of Diagonal 2, always copy the letters from cell numbers 7, 5, and 3.
+Cell Numbers:
+ 1 2 3
+ 4 5 6
+ 7 8 9
+
+These are all of the dimensions and which cell numbers make up each dimension
+Row 1: " 1 2 3"
+Row 2: " 4 5 6"
+Row 3: " 7 8 9"
+Column 1: " 1 4 7"
+Column 2: " 2 5 8"
+Column 3: " 3 6 9"
+Diagonal 1: " 1 5 9"
+Diagonal 2: " 7 5 3"
+
+For example, given this board to analyze: 
+"""
+ _ _ _
+ X O X
+ _ O X
+"""
+
+You should copy the cell from each number and fill them in to the corresponding number in the dimension break downs like this:
+"""
+Dimensions:
+Row 1: " _ _ _"
+Row 2: " X O X"
+Row 3: " _ O X"
+Column 1: " _ X _"
+Column 2: " _ O O"
+Column 3: " _ X X"
+Diagonal 1: " _ O X"
+Diagonal 2: " _ O _"
+"""
+
+Board to analyze:
+"""
+%s
+"""
+```
+
+prompt_count_class
+Analyse each dimension and give it a classification which will be used for move selection. The four possible classifications are 'possible O', 'possible X', 'open', and 'closed'.
+The 'possible O' category means that there are two O's and an empty cell and no X's. The 'possible X' for when there are two X's and an empty cell and no O's. The 'open' category means that there are one or less X or O within the dimension. The 'closed' category means that there is atleast one X and atleast one O.
+```Text
+ Act as an instance counter and classifier. Given a list of dimensions, count how many time each letter occurs and then classify the dimension based on the counts.Each dimension will have 3 letters outputted from step 1, and I need you to count how many times each character occurs in that sequence. There are only 3 characters that are possible in the sequence: " X", " O", and " _". For example: given the sequence " X X _", the counts should be "X: 2 O: 0 _:1"The classification of this dimension corresponding to these counts: The four possible classifications are "possible O", "possible X", "open", and "closed". The "possible O" category means that there are two O's and an empty cell and no X's. This means that if the counts are "X:0 O:2 _:1", it will always be in the category "possible O". The "possible X" for when there are two X's and an empty cell and no O's. This means that if the counts are "X:2 O:0 _:1", it will always be in the category "possible O". The "open" category means that there are one or less X or O within the dimension. This means that if the counts are of the blank cells are greater than or equal to 2, it will always be in the category "open". The "closed" category means that there is at least one X and at least one O. This means that if the counts of both X and O are greater than or equal to 1, it will always be the "closed" category.
+For example, given these dimensions, you should output the following:
+"""
+Dimensions:
+Row 1: " _ _ _" Counts "X:0 O:0 _:3" Classification: "open"
+Row 2: " X O X" Counts "X:2 O:1 _:0" Classification: "closed"
+Row 3: " _ O X" Counts "X:1 O:1 _:1" Classification: "closed"
+Column 1: " _ X _" Counts "X:1 O:0 _:2" Classification: "open"
+Column 2: " _ O O" Counts "X:0 O:2 _:1" Classification: "possible O"
+Column 3: " _ X X" Counts "X:2 O:0 _:1" Classification: "possible X"
+Diagonal 1: " _ O X" Counts "X:1 O:1 _:1" Classification: "closed"
+Diagonal 2: " _ O _" Counts "X:0 O:1 _:2" Classification: "open"
+"""Output:
+"""
+Dimensions:
+Row 1: " _ _ _" Counts "X:0 O:0 _:3" Classification: "open"
+Row 2: " X O X" Counts "X:2 O:1 _:0" Classification: "closed"
+Row 3: " _ O X" Counts "X:1 O:1 _:1" Classification: "closed"
+Column 1: " _ X _" Counts "X:1 O:0 _:2" Classification: "open"
+Column 2: " _ O O" Counts "X:0 O:2 _:1" Classification: "possible O"
+Column 3: " _ X X" Counts "X:2 O:0 _:1" Classification: "possible X"
+Diagonal 1: " _ O X" Counts "X:1 O:1 _:1" Classification: "closed"
+Diagonal 2: " _ O _" Counts "X:0 O:1 _:2" Classification: "open"
+"""Now give the counts and classifications for these dimensions:
+"""
+%s
+""" 
+```
+
+prompt_pick_move
+Pick the best dimension to move in based on the classification of the dimensions, then translate the selection to the board
+```Text
+ Act as a decision maker for tic-tac-toe game. Given a the player whose turn it is and a breakdown of each dimension on the tic-tac-toe board and its classification, pick the best dimension to make a move in based on this priority system using the classification. The best dimension is determined by following this simple priority system. First, check if there is a "possible" win in for the player from the prompt. This means if the player being asked about is "X", "possible X" is the priority over "possible O" for the number one priority. Conversely, if the prompt is for Player O, then "possible O" is the priority over "possible X" for the number one priority. If there is, make a move in the blank cell in this dimension to win the game. Next, check if there is a "possible" win for the other player. If there is, then make a move in this column in order to block the other player from winning (but only if you cannot win yourself). If there are none of these categories, then move in the first available "open" dimension. Finally, if no other options are available, make a move in the first empty cell within a "closed" dimension. Once you have selected the single best dimension to move in, you must select the number of the blank cell in that dimension that the move will be in. Output that information in the format after replacing the square bracket placeholders with the actual information: "Best Move for Player [X or O]: Category: [selected category], Dimension: [best dimension], Cell: #[1, 2, or 3], Coordinate: ([row], [column])."
+
+The next step is to reconstruct the board based on the dimensions. Just copy the contents of Row 1, Row 2, and Row 3. Only copy the contents part of the board which is the part in quotes (").  Then, place the best move you selected by replacing the blank cell at the coordinates specified with the letter corresponding to the player whose turn it is. 
+Now pick the best move for Player %s with these dimensions:
+%s
+```
+
+### GPT-4
+GPT3 ultimately was not smart enough to play TicTacToe well. GPT4, however, is smart enough to effectively and reliably play tictactoe. It is important to realize the tradeoff of using different models and use your prompt against a suitable model. Simpler models are usually cheaper and faster which is good for simple tasks with a lot of volume. GPT4 is much slower and smarter, but it comes with extra cost.
+
+### Results
+Check out the examples folder to see comparisons between the performance of GPT3 and GPT4 for the different prompt parts.
+
+## Key Point Summary
+1. Don't be afraid to experiment and just try things out. When starting out or when you are stuck, it can be helpful to ask it directly to do what you want and then go from there.
+2. If there are multiple logical steps that need to happen to accomplish your goal, try explicitly telling it to output each step as part of the prompt. The text of the conversation including its own responses is what forms its memory of what it is trying to accomplish, so that can be a great way to make sure it doesn't get lost which would otherwise be a common tendency.
+3. Start off your prompt by assigning ChatGPT an explicit role with the 'Act as ...' phrase. ChatGPT is very good at adapting to roles, but it cannot always do that directly from context.
+4. Keep in mind the way that ChatGPT processes information. Sequence, tokens, and context are all important. Sometimes you will need to reframe what you are trying to do in a way that better aligns with the underlying mechanics of the model you are working with. I do not have time to cover this 
+
+https://platform.openai.com/tokenizer
+https://platform.openai.com/playground/
